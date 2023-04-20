@@ -54,8 +54,6 @@ public class MessageCodecImpl implements MessageCodec {
      */
     @Override
     public Message decode(byte[] data) throws ParsingException {
-        //Message message = new Message();
-       // message.setHeaders(new HashMap<>());
         Map<String,String> headers = new HashMap<String,String>();
         try {
             ByteBuffer buffer = ByteBuffer.wrap(data);
@@ -73,7 +71,6 @@ public class MessageCodecImpl implements MessageCodec {
                 String value = new String(valueBytes);
                 headers.put(name, value);
             }
-
             int payloadLength = buffer.getInt();
             byte[] payload = new byte[payloadLength];
             buffer.get(payload);
