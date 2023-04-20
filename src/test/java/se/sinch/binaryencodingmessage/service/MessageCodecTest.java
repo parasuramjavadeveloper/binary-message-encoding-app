@@ -2,6 +2,7 @@ package se.sinch.binaryencodingmessage.service;
 
 import org.junit.jupiter.api.Test;
 import se.sinch.binaryencodingmessage.exeption.InvalidMessageException;
+import se.sinch.binaryencodingmessage.exeption.ParsingException;
 import se.sinch.binaryencodingmessage.model.Message;
 
 import java.util.HashMap;
@@ -21,11 +22,11 @@ public class MessageCodecTest {
     Tests the success case scenario of encode and decode features
      */
     @Test
-    public void testMessageEncodeSuccess() throws InvalidMessageException {
+    public void testMessageEncodeSuccess() throws ParsingException, InvalidMessageException {
         byte[] encodedMessage =  service.encode(getNormalMessage());
         assertNotNull(encodedMessage);
         Message decodedMessage = service.decode(encodedMessage);
-        assertEquals(2,decodedMessage.headers.size());
+        assertEquals(2,decodedMessage.getHeaders().size());
     }
 
     /*
@@ -34,7 +35,7 @@ public class MessageCodecTest {
     @Test
     public void testMessageEncodingFailure()
     {
-        assertThrows(InvalidMessageException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             service.encode(null);
         });
     }
@@ -44,11 +45,11 @@ public class MessageCodecTest {
     and decoding was failed due to errors.
      */
     @Test
-    public void testEncodeSuccessDecodeError() throws InvalidMessageException {
+    public void testEncodeSuccessDecodeError() throws InvalidMessageException, ParsingException {
         byte[] encodedMessage =  service.encode(getNormalMessage());
         encodedMessage[60] = 101;
         Message decodedMessage = service.decode(encodedMessage);
-        assertNotEquals("message bytes",decodedMessage.payload);
+        assertNotEquals("message bytes",decodedMessage.getPayload());
     }
 
     /*
@@ -58,7 +59,7 @@ public class MessageCodecTest {
     public void testMalformedEncodedString() throws InvalidMessageException {
         byte[] encodedMessage =  service.encode(getNormalMessage());
         encodedMessage[0] = 101;
-        assertThrows(Exception.class,() ->{
+        assertThrows(ParsingException.class,() ->{
             service.decode(encodedMessage);
         });
     }
