@@ -18,10 +18,17 @@ public class MessageCodecImpl implements MessageCodec {
 
 
     /**
-     * Takes the Message as an Input and generates
-     * the encoded form of given message as byte array.
+     * Takes the Message as an Input and generates the encoded form of given message as byte array.
+     * The Message object contains headers and payLoad, the maximum headers allowed are 63.
+     * The encoded message size will dynamically change based on the total size of headers and payload in the message.
      * @param message, The message which needs to encode.
      * @return encoded message in byte[] format.
+     * @throws InvalidMessageException if input was invalid.
+     * In case of null input value, the method will throw NullPointerException.
+     * Explanation :- Initially Taken totalSize as 4 bytes of memory allocation and then iterating the total headers adding each header key length and value Length
+     * to the totalSize and finally adding payload length to this totalSize of byteArray.
+     * Added Message Headers size to the bytebuffer ,added each header key length and its bytes
+     * ,added each header value length and its bytes and finally added Message Payload Length and Message Payload.
      */
     @Override
     public byte[] encode(@NonNull Message message) throws InvalidMessageException {
@@ -47,10 +54,13 @@ public class MessageCodecImpl implements MessageCodec {
     }
 
     /**
-     * Takes the encoded message as an Input and generates
-     * the decoded data in the form of given Messsage object
+     * Takes the encoded message as an Input and generates the decoded data in the form of given Message object
      * @param data, encoded data in byte[] format.
      * @return message object.
+     * @throws ParsingException, if the encoded message was malformed or if user sent invalid input to decode.
+     *  Explanation :- The way we are added in the encode message of its bytes in the same way need to take back here in the decoded message.
+     *  So the first int is number Of Headers,next is Header each key size and each key bytes and Header each value length and each value bytes
+     *  and finally payload length and payload bytes.
      */
     @Override
     public Message decode(byte[] data) throws ParsingException {
