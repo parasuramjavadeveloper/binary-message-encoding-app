@@ -11,22 +11,22 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test class for MessageCodecServiceImpl class.
+ * Test class for MessageCodecImpl class.
  * @author Parasuram
  */
 public class MessageCodecTest {
 
-    MessageCodecImpl service = new MessageCodecImpl();
+    MessageCodecImpl messageCodec = new MessageCodecImpl();
 
     /*
     Tests the success case scenario of encode and decode features
      */
     @Test
     public void testMessageEncodeSuccess() throws ParsingException, InvalidMessageException {
-        byte[] encodedMessage =  service.encode(getNormalMessage());
+        byte[] encodedMessage =  messageCodec.encode(getNormalMessage());
         assertNotNull(encodedMessage);
-        Message decodedMessage = service.decode(encodedMessage);
-        assertEquals(2,decodedMessage.getHeaders().size());
+        Message decodedMessage = messageCodec.decode(encodedMessage);
+        assertEquals(5,decodedMessage.getHeaders().size());
     }
 
     /*
@@ -36,31 +36,58 @@ public class MessageCodecTest {
     public void testMessageEncodingFailure()
     {
         assertThrows(NullPointerException.class, () -> {
-            service.encode(null);
+            messageCodec.encode(null);
         });
     }
 
     /*
-    Tests the scenario when message encoding got succes
+   Tests the exception scenario when null value passed in headers.
+    */
+    @Test
+    public void testMessageEncodingWithNullHeaders() {
+        assertThrows(NullPointerException.class, () -> {
+            Message message = new Message(null,"sample payload".getBytes());
+            messageCodec.encode(message);
+        });
+    }
+
+    /*
+    Tests the exception scenario duplicate headers.
+    */
+    @Test
+    public void testMessageEncodingWithDuplicateHeaders() throws InvalidMessageException, ParsingException {
+        HashMap<String,String > headers = new HashMap<>();
+        headers.put("Authorization","noAuth");
+        headers.put("duplicateKey","duplicateValue");
+        headers.put("duplicateKey","duplicateValue");
+        Message message = new Message(headers,"Sample payload.".getBytes());
+        byte[] encodedDate = messageCodec.encode(message);
+        Message decodedMessage = messageCodec.decode(encodedDate);
+        assertEquals(2,decodedMessage.getHeaders().size());
+    }
+
+    /*
+    Tests the scenario when message encoding got success
     and decoding was failed due to errors.
      */
     @Test
     public void testEncodeSuccessDecodeError() throws InvalidMessageException, ParsingException {
-        byte[] encodedMessage =  service.encode(getNormalMessage());
+        byte[] encodedMessage =  messageCodec.encode(getNormalMessage());
         encodedMessage[60] = 101;
-        Message decodedMessage = service.decode(encodedMessage);
-        assertNotEquals("message bytes",decodedMessage.getPayload());
+        assertThrows(ParsingException.class,() ->{
+            messageCodec.decode(encodedMessage);
+        });
     }
 
     /*
-    Tests the scenario, when malformed string send to decode.
+    Tests the scenario, when malformed string sent to decode method.
      */
     @Test
     public void testMalformedEncodedString() throws InvalidMessageException {
-        byte[] encodedMessage =  service.encode(getNormalMessage());
+        byte[] encodedMessage =  messageCodec.encode(getNormalMessage());
         encodedMessage[0] = 101;
         assertThrows(ParsingException.class,() ->{
-            service.decode(encodedMessage);
+            messageCodec.decode(encodedMessage);
         });
     }
 
@@ -68,7 +95,7 @@ public class MessageCodecTest {
     Tests the exception scenario when number of headers exceeds the maximum limit.
      */
     @Test
-    public void invalidHeadersSize() throws InvalidMessageException {
+    public void testWhenInValidHeadersSizeGiven() {
         Map<String, String> headers = new HashMap<>();
         for(int i=0;i<65;i++){
             headers.put("key"+i, "message"+i);
@@ -77,7 +104,7 @@ public class MessageCodecTest {
         Message message = new Message(headers, bytes);
 
         assertThrows(InvalidMessageException.class,() ->{
-            service.encode(message);
+            messageCodec.encode(message);
         });
     }
 
@@ -86,6 +113,9 @@ public class MessageCodecTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("key1", "message1");
         headers.put("key2", "message2");
+        headers.put("key3", "message3");
+        headers.put("key4","message4");
+        headers.put("authorization","bearer_token");
 
         byte[] bytes = "message bytes".getBytes();
 
