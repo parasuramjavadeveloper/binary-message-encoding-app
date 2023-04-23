@@ -20,7 +20,7 @@ java -cp src se.sinch.binaryencodingmessage.EncodeMessageApplication
 1. Implemented business logic using Java8 and maven.
 2. This application deals with encoding and decoding message.
 3. The message will consist of headers and payload.
-4. Junit for all the scenarios have been covered.
+4. Junit Tests for all the scenarios have been covered.
 
 
 # Future Code Improvements
